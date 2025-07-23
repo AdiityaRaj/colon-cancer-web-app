@@ -1,9 +1,7 @@
 services:
   - type: web
     name: colon-cancer-app
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
-    envVars:
-      - key: PORT
-        value: 5000
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true

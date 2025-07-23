@@ -6,22 +6,24 @@ import os
 import gdown
 
 app = Flask(__name__)
+
+# Constants
 UPLOAD_FOLDER = "static/uploads"
+MODEL_FOLDER = "model"
+MODEL_PATH = os.path.join(MODEL_FOLDER, "densenet.keras")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(MODEL_FOLDER, exist_ok=True)
 
-# Model path and download if not exist
-MODEL_PATH = "model/densenet.keras"
-os.makedirs("model", exist_ok=True)
-
+# Download model if not present
 if not os.path.exists(MODEL_PATH):
-    # Replace with your actual Google Drive file ID
-    url = "https://drive.google.com/file/d/1oV86Nz4TVGHr83yT2NWBCNeRQdFRiYLa/view?usp=sharing"
+    file_id = "1oV86Nz4TVGHr83yT2NWBCNeRQdFRiYLa"
+    url = f"https://drive.google.com/uc?id={file_id}"
     gdown.download(url, MODEL_PATH, quiet=False)
 
-# Load model
+# Load the model
 model = load_model(MODEL_PATH, compile=False)
 
-# Class names
+# Class names for prediction
 class_names = [
     'dyed-lifted-polyps',
     'dyed-resection-margins',
@@ -42,16 +44,17 @@ def index():
     if request.method == "POST":
         file = request.files["image"]
         if file:
-            file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+            filename = file.filename
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
             file.save(file_path)
             image_path = file_path
 
-            # Preprocess image
+            # Preprocess the uploaded image
             img = load_img(file_path, target_size=(75, 100))
             img_array = img_to_array(img) / 255.0
             img_array = np.expand_dims(img_array, axis=0)
 
-            # Predict
+            # Run prediction
             preds = model.predict(img_array)
             prediction = class_names[np.argmax(preds)]
             confidence = round(np.max(preds) * 100, 2)
@@ -59,7 +62,9 @@ def index():
     return render_template("index.html", prediction=prediction, confidence=confidence, image=image_path)
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host="0.0.0.0", port=10000)
+
+
 
 
 
